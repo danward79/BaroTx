@@ -8,7 +8,7 @@
 #define VERSION 210 //Software Version
 #define DEBUG 0
 #define NODEID 17
-#define FREQ RF12_433MHZ
+#define FREQ RF12_868MHZ
 #define GROUP 212
 #define WAIT 60000
 
