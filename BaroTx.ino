@@ -5,12 +5,12 @@
 // Digital
 // 
 */
-#define VERSION 210 //Software Version
 #define DEBUG 0
 #define NODEID 17
 #define FREQ RF12_868MHZ
 #define GROUP 212
 #define WAIT 60000
+#define LDR_PORT 0   				// Defined if LDR is connected to a port's AIO pin
 
 //includes
 #include <JeeLib.h> //Various Librarys need for I2C
@@ -22,7 +22,7 @@ PortI2C zero (4);
 //BMP085 Pressor Sensor
 BMP085 psensor (zero,3); 
 
-struct {int16_t barometricTemperature; int32_t barometricPressure; int battery;} payload;
+//struct {byte light; int16_t barometricTemperature; int32_t barometricPressure; int battery;} payload;
 
 volatile bool adcDone;
 ISR(WDT_vect) { Sleepy::watchdogEvent(); }
@@ -54,15 +54,20 @@ void setup(){
     rf12_initialize(NODEID, FREQ, GROUP); 
     
     psensor.getCalibData();
+    
+  	pinMode(14+LDR_PORT, INPUT);
+  	digitalWrite(14+LDR_PORT, 1); // pull-up
 }
 
 // Main Loop
 void loop()
 {	
-	struct { int16_t temp; int32_t pres; int battery;} payload;
+	struct { byte light; int16_t temp; int32_t pres; int battery;} payload;
 	byte x = vccRead();
 	payload.battery = (x * 20) + 1000;
 	Sleepy::loseSomeTime(16);
+  
+  payload.light = 255 - analogRead(LDR_PORT) / 4;
 	
 	psensor.startMeas(BMP085::TEMP);
     Sleepy::loseSomeTime(16);
