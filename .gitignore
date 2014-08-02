@@ -1,1 +1,8 @@
 .DS_Store
+*.dep
+
+*.o
+
+*.a
+
+Makefile
