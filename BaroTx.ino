@@ -7,7 +7,7 @@
 */
 #define DEBUG 0
 #define NODEID 17
-#define FREQ RF12_868MHZ
+#define FREQ RF12_433MHZ
 #define GROUP 212
 #define WAIT 60000
 #define LDR_PORT 0   				// Defined if LDR is connected to a port's AIO pin
