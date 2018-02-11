@@ -1,16 +1,32 @@
-/* Barometric Transmitter
-// 
-// The circuit:
-// IO Allocations
-// Digital
-// 
+/* 
+	RFM12bType1BMP085Node
+
+	Type 1 sensor provides the following data:
+	sensor type (byte), light level 0-100% (byte), temperature C (int), pressure hPa (long) and VCC/battery voltage (byte)
+	Both temperature and pressure should be scaled at the receiving end, by 10 and 100 respectively to give the correct decimal representation.
+
+	The received packet takes the form of:
+	struct {byte sensortype; byte light; int temperature; long pressure; byte vcc; } payload;
+
+	The circuit: ATMega328/Arduino
+	LDR - A0 to Gnd
+	BMP085 - I2C JeeNode Port 4
 */
+
+// Debug setting
 #define DEBUG 0
-#define NODEID 17
-#define FREQ RF12_433MHZ
-#define GROUP 212
-#define WAIT 60000
+
+// User settings
+#define SEND_PERIOD 60000	// Minimum transmission period of sensor values
+#define NODEID 17          		
+#define GROUP 212  
+#define NODE_LABEL "\n[Type 1]" 
+
+// General parameters which may need to be changed
 #define LDR_PORT 0   				// Defined if LDR is connected to a port's AIO pin
+#define FREQ RF12_433MHZ        	// Frequency of RF12B module can be RF12_433MHZ, RF12_868MHZ or RF12_915MHZ. You should use the one matching the module you have.
+#define SENSORTYPE 1
+#define SERIALBAUD 9600
 
 //includes
 #include <JeeLib.h> //Various Librarys need for I2C
@@ -47,8 +63,8 @@ static byte vccRead (byte count =4) {
 // Setup Routine
 void setup(){
 #if DEBUG
-  	Serial.begin(57600);
-	Serial.println("\n[barotx]");
+  	Serial.begin(SERIALBAUD);
+	Serial.println(NODE_LABEL);
 #endif	
 
     rf12_initialize(NODEID, FREQ, GROUP); 
@@ -62,12 +78,15 @@ void setup(){
 // Main Loop
 void loop()
 {	
-	struct { byte light; int16_t temp; int32_t pres; int battery;} payload;
+	struct { byte sensortype; byte light; int16_t temp; int32_t pres; int battery;} payload;
+
+	payload.sensortype = (byte) SENSORTYPE;
+	
 	byte x = vccRead();
 	payload.battery = (x * 20) + 1000;
 	Sleepy::loseSomeTime(16);
   
-  payload.light = 255 - analogRead(LDR_PORT) / 4;
+  	payload.light = 255 - analogRead(LDR_PORT) / 4;
 	
 	psensor.startMeas(BMP085::TEMP);
     Sleepy::loseSomeTime(16);
@@ -97,5 +116,5 @@ void loop()
 	
 	rf12_sleep(RF12_SLEEP);
 	
-	Sleepy::loseSomeTime(WAIT);
+	Sleepy::loseSomeTime(SEND_PERIOD);
 }

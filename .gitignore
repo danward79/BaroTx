@@ -6,3 +6,9 @@
 *.a
 
 Makefile
+
+.vscode/arduino.json
+
+.vscode/c_cpp_properties.json
+
+RFM12bType1BMP085Node.code-workspace
